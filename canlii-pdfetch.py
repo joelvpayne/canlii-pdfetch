@@ -1,56 +1,50 @@
 import requests
-import PyPDF2
-import re
+import os
+import subprocess
+import webbrowser
 
 # Ask user for citation to fetch
-requested_cite = input("Enter the citation of the case to fetch: \n")
-cite_split = requested_cite.split()
-print(cite_split)
+citation = input("Enter the citation of the case to fetch: \n").lower()
 
-year = cite_split[0]
-court = cite_split[1]
+print ('Downloading ...')
+
+# Check for and remove spaces
+if ' ' in citation:
+    citation = citation.replace(' ', '')
+
+# Break citation down into elements for reconstructing url
+year = citation[:4]
+court = citation[4:8]
 juris = court[0:2]
-case_no = cite_split[2]
-citation = ''.join(cite_split)
-
-print(requested_cite)
-print(juris)
-print(citation)
 
 # Construct the url from user input and download
-url = 'https://www.canlii.org/en/' + juris + '/' + court + '/doc/2021/' + citation + '/' + citation + '.pdf'
+url = 'https://www.canlii.org/en/' + juris + '/' + court + '/doc/' + year + '/' + citation + '/' + citation + '.pdf'
 # CanLII url format: https://www.canlii.org/en/bc/bcsc/doc/2021/2021bcsc32/2021bcsc32.pdf
-r = requests.get(url, stream=True)
+url_content = requests.get(url, stream=True)
 
+# Print variables for troubleshooting
 print(url)
+print(citation)
 
 # Rename and save pdf
 filename = citation + '.pdf'
 
 with open(filename, 'wb') as f:
-    f.write(r.content)
-        
-# Create pdf file object
-#pdf_file_object = open(filename, 'rb')
-    
-# Create pdf reader object
-#pdf_reader_object = PyPDF2.PdfFileReader(pdf_file_object)
-        
-# Create page object
-#page_object = pdf_reader_object.getPage(0)
-                
-# Extract text from page
-#first_page_text = page_object.extractText()
-#file = open('first_page_text.txt', 'a')
-#file.write(first_page_text)
-#file.close
+    f.write(url_content.content)
 
-# Search extracted text for first name in style of cause
-#s = first_page_text
-#party_name_regex = re.search(r'Citation:( [a-zA-Z]+ )v.', s).group(1)
-#party_name_regex = re.search(r'Citation:\s+(.+\n)', s).group(1)
+open_or_exit = input('Fetch complete. Open it now? \n'
+'Type "B" to open in your web browser \n'
+'Type "P" to open in your PDF viewer \n'
+'Type "N" to exit: \n').lower()
 
-#print(party_name_regex)
+if open_or_exit == 'b':
+    webbrowser.open_new(filename)
+elif open_or_exit == 'p':
+    #subprocess.Popen([filename], shell=True)
+    subprocess.call(["xdg-open", filename])
+elif open_or_exit == 'n':
+    exit()
+else:
+    exit()
 
-# closing the pdf file object
-#pdf_file_object.close()
+
