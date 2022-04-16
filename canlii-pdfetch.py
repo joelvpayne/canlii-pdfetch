@@ -18,7 +18,7 @@ court = citation[4:8]
 juris = court[0:2]
 
 # Construct the url from user input and download
-url = 'https://www.canlii.org/en/' + juris + '/' + court + '/doc/' + year + '/' + citation + '/' + citation + '.pdf'
+url = f'https://www.canlii.org/en/{juris}/{court}/doc/{year}/{citation}/{citation}.pdf'
 # CanLII url format: https://www.canlii.org/en/bc/bcsc/doc/2021/2021bcsc32/2021bcsc32.pdf
 url_content = requests.get(url, stream=True)
 
