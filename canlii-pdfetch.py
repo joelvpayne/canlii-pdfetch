@@ -1,50 +1,57 @@
+import csv
+import re
 import requests
-import os
-import subprocess
-import webbrowser
 
-# Ask user for citation to fetch
-citation = input("Enter the citation of the case to fetch: \n").lower()
+# Field names
+fields = ['citation', 'year', 'forum', 'decision']
 
-print ('Downloading ...')
+# Name csv file
+case_list = "case_list.csv"
 
-# Check for and remove spaces
-if ' ' in citation:
-    citation = citation.replace(' ', '')
+p = re.compile(r'\b[0-9]{4}\s[a-zA-Z]{,8}\s[0-9]+\b')
 
-# Break citation down into elements for reconstructing url
-year = citation[:4]
-court = citation[4:8]
-juris = court[0:2]
+with open('target.txt') as f:
+    iterator = p.findall(f.read())
 
-# Construct the url from user input and download
-url = f'https://www.canlii.org/en/{juris}/{court}/doc/{year}/{citation}/{citation}.pdf'
-# CanLII url format: https://www.canlii.org/en/bc/bcsc/doc/2021/2021bcsc32/2021bcsc32.pdf
-url_content = requests.get(url, stream=True)
+with open(case_list, 'w') as csvfile:
 
-# Print variables for troubleshooting
-print(url)
-print(citation)
+    # Creating csv writer object
+    csvwriter = csv.writer(csvfile)
+              
+    # Write fields
+    csvwriter.writerow(fields)
+    
+    # Write matches to csv and download pdfs
+    for hit in iterator:
 
-# Rename and save pdf
-filename = citation + '.pdf'
+        # Create list elements
+        row = [hit]
+        cite_parts = hit.split()
+        row += cite_parts
+        csvwriter.writerow(row)
 
-with open(filename, 'wb') as f:
-    f.write(url_content.content)
+        # Variables for constructing url
+        citation = row[0].lower()
+        citation_joined = ''.join(citation.split()).lower()
+        year = row[1].lower()
+        forum = row[2].lower()
 
-open_or_exit = input('Fetch complete. Open it now? \n'
-'Type "B" to open in your web browser \n'
-'Type "P" to open in your PDF viewer \n'
-'Type "N" to exit: \n').lower()
+        # Create variables for forum special cases
+        if forum == 'scc' or forum == 'fc' or forum == 'fca':
+            juris = 'ca'
+        else:
+            juris = forum[0:2]
 
-if open_or_exit == 'b':
-    webbrowser.open_new(filename)
-elif open_or_exit == 'p':
-    #subprocess.Popen([filename], shell=True)
-    subprocess.call(["xdg-open", filename])
-elif open_or_exit == 'n':
-    exit()
-else:
-    exit()
+        if forum == 'fc':
+            forum = 'fct'
 
+        # Download from url
+        url = f'https://www.canlii.org/en/{juris}/{forum}/doc/{year}/{citation_joined}/{citation_joined}.pdf'.lower()
+        url_content = requests.get(url, stream=True)
+        print(f'Downloading {citation} ...')
+        print(url)
 
+        # Save downloaded pdfs
+        filename = citation_joined + '.pdf'
+        with open(filename, 'wb') as f:
+            f.write(url_content.content)
