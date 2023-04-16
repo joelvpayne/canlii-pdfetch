@@ -6,7 +6,7 @@ A learning project. A python script to fetch and download PDFs of cases from Can
 
 ---
 
-Unfortunately, use of this script is against CanLII's terms of use: https://www.canlii.org/en/info/terms.html. This is a proof of concept. Do not use it.
+Unfortunately, use of this script is against CanLII's terms of use: https://www.canlii.org/en/info/terms.html. This was just a learning project. Do not use it.
 
 
 > Prohibited Uses
